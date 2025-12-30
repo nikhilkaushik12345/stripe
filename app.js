@@ -13,7 +13,9 @@ app.use(express.static(path.join(__dirname, "public"))); // serves index.html
 
 // OAuth callback
 app.get("/callback", (req, res) => {
-  res.redirect("/?code=" + req.query.code);
+  const code = req.query.code;
+  // IMPORTANT: immediately redirect to clean URL (no userinfo)
+  res.redirect("/?code=" + encodeURIComponent(code));
 });
 
 // Exchange code + call MCP
@@ -25,10 +27,12 @@ app.post("/exchange", async (req, res) => {
     params.append("grant_type", "authorization_code");
     params.append("code", code);
 
-    // ✅ UPDATED redirect_uri
-    params.append("redirect_uri", "https://callback.mistral.ai@stripe-2pke.onrender.com/callback");
+    // Stripe-registered redirect_uri (unchanged)
+    params.append(
+      "redirect_uri",
+      "https://callback.mistral.ai@stripe-2pke.onrender.com/callback"
+    );
 
-    // ✅ UPDATED client_id
     params.append("client_id", "oacli_ThHPvdbfGDl2MF");
 
     // PKCE verifier (unchanged)
