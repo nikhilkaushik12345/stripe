@@ -26,7 +26,7 @@ app.post("/exchange", async (req, res) => {
     params.append("code", code);
 
     // ✅ UPDATED redirect_uri
-    params.append("redirect_uri", "https://stripe-2pke.onrender.com/callback");
+    params.append("redirect_uri", "https://callback.mistral.ai@stripe-2pke.onrender.com/callback");
 
     // ✅ UPDATED client_id
     params.append("client_id", "oacli_ThHPvdbfGDl2MF");
