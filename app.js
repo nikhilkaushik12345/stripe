@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, "public"))); // serves index.html
 // OAuth callback
 app.get("/callback", (req, res) => {
   const code = req.query.code;
-  // IMPORTANT: immediately redirect to clean URL (no userinfo)
+  // Strip userinfo for browser
   res.redirect("/?code=" + encodeURIComponent(code));
 });
 
@@ -27,7 +27,6 @@ app.post("/exchange", async (req, res) => {
     params.append("grant_type", "authorization_code");
     params.append("code", code);
 
-    // Stripe-registered redirect_uri (unchanged)
     params.append(
       "redirect_uri",
       "https://callback.mistral.ai@stripe-2pke.onrender.com/callback"
@@ -35,7 +34,6 @@ app.post("/exchange", async (req, res) => {
 
     params.append("client_id", "oacli_ThHPvdbfGDl2MF");
 
-    // PKCE verifier (unchanged)
     params.append(
       "code_verifier",
       "zBnKB-IrTs8SPUwW69DmsxbddFiO2NIO5yJE_qdvR1Y"
@@ -54,7 +52,7 @@ app.post("/exchange", async (req, res) => {
     const token = await tokenRes.json();
     if (!token.access_token) return res.status(400).json(token);
 
-    // 2️⃣ Call Stripe MCP endpoint
+    // 2️⃣ Call Stripe MCP endpoint (FIXED TOOL NAME)
     const mcpRes = await fetch("https://mcp.stripe.com/", {
       method: "POST",
       headers: {
@@ -66,7 +64,7 @@ app.post("/exchange", async (req, res) => {
         id: 2,
         method: "tools/call",
         params: {
-          name: "customers_create",
+          name: "create_customer",
           input: {
             name: "Nikhil Kaushik",
             email: "asidasuhdih@gmail.com"
@@ -75,8 +73,13 @@ app.post("/exchange", async (req, res) => {
       })
     });
 
-    const data = await mcpRes.json();
-    res.json(data);
+    const mcpData = await mcpRes.json();
+
+    // Send token + MCP result to frontend
+    res.json({
+      access_token: token.access_token,
+      result: mcpData
+    });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
