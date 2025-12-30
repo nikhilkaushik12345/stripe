@@ -29,10 +29,21 @@ async function getAccessToken(code) {
       body: JSON.stringify({ code })
     });
     const data = await res.json();
-    document.getElementById("authorization-code").textContent = "Access Token Processed";
-    document.getElementById("user-info").textContent = JSON.stringify(data, null, 2);
+
+    if (data.access_token) {
+      document.getElementById("access-token").textContent =
+        "Access Token: " + data.access_token;
+    }
+
+    document.getElementById("authorization-code").textContent =
+      "Access Token Processed";
+
+    document.getElementById("user-info").textContent =
+      JSON.stringify(data.result ?? data, null, 2);
+
   } catch (err) {
-    document.getElementById("authorization-code").textContent = "Error: " + err;
+    document.getElementById("authorization-code").textContent =
+      "Error: " + err;
   }
 }
 
@@ -42,7 +53,8 @@ window.onload = () => {
     loginWithStripe();
     return;
   }
-  document.getElementById("authorization-code").textContent = "Authorization Code: " + code;
+  document.getElementById("authorization-code").textContent =
+    "Authorization Code: " + code;
   getAccessToken(code);
 };
 </script>
@@ -50,7 +62,10 @@ window.onload = () => {
 <body>
 <h1>Login with Stripe</h1>
 <button onclick="loginWithStripe()">Login</button>
+
 <p id="authorization-code"></p>
+<p id="access-token" style="word-break: break-all;"></p>
+
 <h2>User Information</h2>
 <pre id="user-info"></pre>
 </body>
