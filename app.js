@@ -17,7 +17,7 @@ app.get("/callback", (req, res) => {
   res.redirect("/?code=" + encodeURIComponent(code));
 });
 
-// Exchange code for access token
+// Exchange code + call MCP
 app.post("/exchange", async (req, res) => {
   try {
     const { code } = req.body;
@@ -38,6 +38,7 @@ app.post("/exchange", async (req, res) => {
       "zBnKB-IrTs8SPUwW69DmsxbddFiO2NIO5yJE_qdvR1Y"
     );
 
+    // 1️⃣ Token exchange
     const tokenRes = await fetch("https://access.stripe.com/mcp/oauth2/token", {
       method: "POST",
       headers: {
@@ -50,22 +51,26 @@ app.post("/exchange", async (req, res) => {
     const token = await tokenRes.json();
     if (!token.access_token) return res.status(400).json(token);
 
-    res.json({ access_token: token.access_token });
+    // DO NOT call MCP here automatically
+    res.json({
+      access_token: token.access_token,
+      result: token
+    });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// New endpoint: call MCP on button click
-app.post("/call-mcp", async (req, res) => {
+// New route for button-triggered MCP request
+app.post("/mcp-request", async (req, res) => {
   try {
-    const { token } = req.body;
+    const { access_token } = req.body;
 
     const mcpRes = await fetch("https://mcp.stripe.com/", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
+        "Authorization": `Bearer ${access_token}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
