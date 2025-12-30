@@ -25,12 +25,13 @@ app.post("/exchange", async (req, res) => {
     params.append("grant_type", "authorization_code");
     params.append("code", code);
 
-    // ✅ STATIC redirect_uri
-    params.append("redirect_uri", "https://stripe-wecq.onrender.com/callback");
+    // ✅ UPDATED redirect_uri
+    params.append("redirect_uri", "https://stripe-2pke.onrender.com/callback");
 
-    params.append("client_id", "oacli_ThGrP4JNdP9WSR");
+    // ✅ UPDATED client_id
+    params.append("client_id", "oacli_ThHPvdbfGDl2MF");
 
-    // PKCE verifier
+    // PKCE verifier (unchanged)
     params.append(
       "code_verifier",
       "zBnKB-IrTs8SPUwW69DmsxbddFiO2NIO5yJE_qdvR1Y"
