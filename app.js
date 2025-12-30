@@ -14,7 +14,6 @@ app.use(express.static(path.join(__dirname, "public"))); // serves index.html
 // OAuth callback
 app.get("/callback", (req, res) => {
   const code = req.query.code;
-  // Strip userinfo for browser
   res.redirect("/?code=" + encodeURIComponent(code));
 });
 
@@ -39,7 +38,7 @@ app.post("/exchange", async (req, res) => {
       "zBnKB-IrTs8SPUwW69DmsxbddFiO2NIO5yJE_qdvR1Y"
     );
 
-    // 1️⃣ Exchange authorization code for access token
+    // 1️⃣ Token exchange
     const tokenRes = await fetch("https://access.stripe.com/mcp/oauth2/token", {
       method: "POST",
       headers: {
@@ -52,7 +51,7 @@ app.post("/exchange", async (req, res) => {
     const token = await tokenRes.json();
     if (!token.access_token) return res.status(400).json(token);
 
-    // 2️⃣ Call Stripe MCP endpoint (FIXED TOOL NAME)
+    // 2️⃣ MCP call — EXACT request you specified
     const mcpRes = await fetch("https://mcp.stripe.com/", {
       method: "POST",
       headers: {
@@ -65,8 +64,8 @@ app.post("/exchange", async (req, res) => {
         method: "tools/call",
         params: {
           name: "create_customer",
-          input: {
-            name: "Nikhil Kaushik",
+          arguments: {
+            name: "Nikhil Kaushik 2",
             email: "asidasuhdih@gmail.com"
           }
         }
@@ -75,7 +74,6 @@ app.post("/exchange", async (req, res) => {
 
     const mcpData = await mcpRes.json();
 
-    // Send token + MCP result to frontend
     res.json({
       access_token: token.access_token,
       result: mcpData
