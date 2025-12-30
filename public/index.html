@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login with Stripe</title>
 <script>
-let accessToken = null;
-
 function getAuthorizationCodeFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('code');
@@ -23,6 +21,8 @@ function loginWithStripe() {
   window.location.href = authUrl;
 }
 
+let savedAccessToken = null;
+
 async function getAccessToken(code) {
   try {
     const res = await fetch(
@@ -37,16 +37,17 @@ async function getAccessToken(code) {
     const data = await res.json();
 
     if (data.access_token) {
-      accessToken = data.access_token;
+      savedAccessToken = data.access_token; // save token
       document.getElementById("access-token").textContent =
-        "Access Token: " + accessToken;
-
-      // Enable Send Request button
-      document.getElementById("send-request-btn").disabled = false;
+        "Access Token: " + data.access_token;
+      document.getElementById("send-request-btn").disabled = false; // enable button
     }
 
     document.getElementById("authorization-code").textContent =
       "Access Token Processed";
+
+    document.getElementById("user-info").textContent =
+      JSON.stringify(data.result ?? data, null, 2);
 
   } catch (err) {
     document.getElementById("authorization-code").textContent =
@@ -54,27 +55,24 @@ async function getAccessToken(code) {
   }
 }
 
-async function sendRequest() {
-  if (!accessToken) return;
+async function sendMcpRequest() {
+  if (!savedAccessToken) return;
 
   try {
-    const res = await fetch(
-      new URL("/call-mcp", window.location.origin),
-      {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ token: accessToken })
-      }
-    );
+    const res = await fetch("/mcp-request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ access_token: savedAccessToken })
+    });
 
     const data = await res.json();
-    document.getElementById("user-info").textContent =
+    document.getElementById("mcp-response").textContent =
       JSON.stringify(data, null, 2);
 
   } catch (err) {
-    document.getElementById("user-info").textContent =
+    document.getElementById("mcp-response").textContent =
       "Error: " + err;
   }
 }
@@ -87,6 +85,8 @@ window.onload = () => {
   }
   document.getElementById("authorization-code").textContent =
     "Authorization Code: " + code;
+
+  // fetch access token but do NOT send MCP automatically
   getAccessToken(code);
 };
 </script>
@@ -98,9 +98,12 @@ window.onload = () => {
 <p id="authorization-code"></p>
 <p id="access-token" style="word-break: break-all;"></p>
 
-<button id="send-request-btn" onclick="sendRequest()" disabled>Send Request</button>
-
 <h2>User Information</h2>
 <pre id="user-info"></pre>
+
+<h2>Send MCP Request</h2>
+<button id="send-request-btn" onclick="sendMcpRequest()" disabled>Send Request</button>
+<pre id="mcp-response"></pre>
+
 </body>
 </html>
