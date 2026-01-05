@@ -9,7 +9,6 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // needed for form submission
 app.use(express.static(path.join(__dirname, "public"))); // serves index.html
 
 // OAuth callback
@@ -63,44 +62,10 @@ app.post("/exchange", async (req, res) => {
   }
 });
 
-// New route for button-triggered MCP request (original, still here)
+// New route for button-triggered MCP request
 app.post("/mcp-request", async (req, res) => {
   try {
     const { access_token } = req.body;
-
-    const mcpRes = await fetch("https://mcp.stripe.com/", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${access_token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
-        params: {
-          name: "create_customer",
-          arguments: {
-            name: "Nikhil Kaushik",
-            email: "asidasuhdih@gmail.com"
-          }
-        }
-      })
-    });
-
-    const mcpData = await mcpRes.json();
-    res.json(mcpData);
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ✅ New safe route for MCP triggered by the frontend form
-app.post("/trigger-mcp", async (req, res) => {
-  try {
-    const access_token = req.body.access_token;
-    if (!access_token) return res.status(400).send("Missing access token");
 
     const mcpRes = await fetch("https://mcp.stripe.com/", {
       method: "POST",
