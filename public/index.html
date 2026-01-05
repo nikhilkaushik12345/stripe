@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login with Stripe</title>
 <script>
+
+
 function getAuthorizationCodeFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('code');
@@ -25,12 +27,14 @@ let savedAccessToken = null;
 
 async function getAccessToken(code) {
   try {
-    // ✅ FIX: Use relative URL instead of new URL(...)
-    const res = await fetch("/exchange", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code })
-    });
+    const res = await fetch(
+      new URL("/exchange", window.location.origin),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      }
+    );
 
     const data = await res.json();
 
@@ -39,6 +43,8 @@ async function getAccessToken(code) {
       document.getElementById("access-token").textContent =
         "Access Token: " + data.access_token;
       document.getElementById("send-request-btn").disabled = false; // enable button
+
+
     }
 
     document.getElementById("authorization-code").textContent =
@@ -57,7 +63,6 @@ async function sendMcpRequest() {
   if (!savedAccessToken) return;
 
   try {
-    // ✅ FIX: Use relative URL here too
     const res = await fetch("/mcp-request", {
       method: "POST",
       headers: {
@@ -65,6 +70,9 @@ async function sendMcpRequest() {
       },
       body: JSON.stringify({ access_token: savedAccessToken })
     });
+
+
+
 
     const data = await res.json();
     document.getElementById("mcp-response").textContent =
@@ -96,6 +104,8 @@ window.onload = () => {
 
 <p id="authorization-code"></p>
 <p id="access-token" style="word-break: break-all;"></p>
+
+
 
 <h2>User Information</h2>
 <pre id="user-info"></pre>
