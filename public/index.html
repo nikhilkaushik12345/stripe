@@ -59,6 +59,7 @@ async function sendMcpRequest() {
   if (!savedAccessToken) return;
 
   try {
+    // ✅ Use a relative URL instead of new URL(...) to avoid the credentials issue
     const res = await fetch("/mcp-request", {
       method: "POST",
       headers: {
@@ -76,6 +77,7 @@ async function sendMcpRequest() {
       "Error: " + err;
   }
 }
+
 
 window.onload = () => {
   const code = getAuthorizationCodeFromUrl();
