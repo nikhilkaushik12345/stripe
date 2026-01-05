@@ -25,6 +25,7 @@ let savedAccessToken = null;
 
 async function getAccessToken(code) {
   try {
+    // ✅ FIX: Use relative URL instead of new URL(...)
     const res = await fetch("/exchange", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,9 +53,27 @@ async function getAccessToken(code) {
   }
 }
 
-// ✅ New form-based MCP request to bypass browser credentials restriction
-function updateHiddenToken() {
-  document.getElementById("hidden-access-token").value = savedAccessToken || "";
+async function sendMcpRequest() {
+  if (!savedAccessToken) return;
+
+  try {
+    // ✅ FIX: Use relative URL here too
+    const res = await fetch("/mcp-request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ access_token: savedAccessToken })
+    });
+
+    const data = await res.json();
+    document.getElementById("mcp-response").textContent =
+      JSON.stringify(data, null, 2);
+
+  } catch (err) {
+    document.getElementById("mcp-response").textContent =
+      "Error: " + err;
+  }
 }
 
 window.onload = () => {
@@ -82,20 +101,8 @@ window.onload = () => {
 <pre id="user-info"></pre>
 
 <h2>Send MCP Request</h2>
-<!-- ✅ Fixed MCP button using form -->
-<form id="mcp-form" method="POST" action="/trigger-mcp" target="mcp-iframe" onsubmit="updateHiddenToken()">
-  <input type="hidden" name="access_token" id="hidden-access-token">
-  <button type="submit" id="send-request-btn" disabled>Send Request</button>
-</form>
-
+<button id="send-request-btn" onclick="sendMcpRequest()" disabled>Send Request</button>
 <pre id="mcp-response"></pre>
-
-<!-- Hidden iframe to capture server response without leaving page -->
-<iframe name="mcp-iframe" style="display:none;" onload="
-  const iframeDoc = this.contentDocument || this.contentWindow.document;
-  const content = iframeDoc.body.innerText;
-  if(content) document.getElementById('mcp-response').textContent = content;
-"></iframe>
 
 </body>
 </html>
