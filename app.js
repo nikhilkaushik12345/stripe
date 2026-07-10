@@ -74,17 +74,20 @@ app.post("/mcp-request", async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
-        params: {
-          name: "create_customer",
-          arguments: {
-            name: "Nikhil Kaushik",
-            email: "asidasuhdih@gmail.com"
-          }
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": {
+      "name": "stripe_api_write",
+      "arguments": {
+        "stripe_api_operation_id": "PostCustomers",
+        "parameters": {
+          "name": "Nikhil Kaushik",
+          "email": "asidasuhdih@gmail.com"
         }
-      })
+      }
+    }
+  })
     });
 
     const mcpData = await mcpRes.json();
